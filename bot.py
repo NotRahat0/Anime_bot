@@ -1,7 +1,27 @@
 import os
+import threading
+import http.server
+import socketserver
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
+
+# --- FAKE WEB SERVER TO FOOL RENDER HEALTH CHECK ---
+def run_fake_server():
+    # Render automatically provides a PORT environment variable
+    port = int(os.environ.get("PORT", 8080))
+    handler = http.server.SimpleHTTPRequestHandler
+    
+    # Allow port reuse to avoid 'Address already in use' errors
+    socketserver.TCPServer.allow_reuse_address = True
+    
+    with socketserver.TCPServer(("0.0.0.0", port), handler) as httpd:
+        print(f"🌍 Fake Web Server running on port {port} for Render Health Check...")
+        httpd.serve_forever()
+
+# Start the fake server in a separate background thread
+threading.Thread(target=run_fake_server, daemon=True).start()
+
 
 # --- GET ENVIRONMENT VARIABLES FROM RENDER ---
 API_ID = int(os.environ.get("API_ID", 1234567))  
@@ -69,12 +89,12 @@ async def anime_search(client: Client, message: Message):
         caption = (
             f"🔮 ─── ❖ **𝑨𝑵𝑰𝑴𝑬  𝑫𝑬𝑻𝑨𝑰𝑳𝑺** ❖ ─── 🔮\n\n"
             f"🎬 🏷️ **𝖳𝗂𝗍𝒍𝒆:** {title_english}\n"
-            f"🇯🇵 🎏 **𝖩𝖺𝗉𝖺𝗇𝖾𝗌𝖾:** *{title_japanese}*\n"
+            f"🇯🇵 🎏 **𝖩𝖺𝗉𝖺𝗇𝖾𝒔𝒆:** *{title_japanese}*\n"
             f"⭐️ 🌟 **𝖲𝖼𝗈𝒓𝒆:** `{score} / 10`\n"
             f"📁 🧬 **𝖳𝗒𝗉𝒆:** {anime_type}\n"
             f"🔢 🎞️ **𝖤𝗉𝗂𝒔𝒐𝒅𝒆𝒔:** `{episodes}`\n"
-            f"⏳ 📈 **𝖲𝗍𝖺𝗍𝒖𝒔:** {status}\n"
-            f"🔞 🛡️ **𝖱𝖺𝗍𝗂𝗇𝗀:** {rating}\n"
+            f"⏳ 📈 **𝖲𝗍𝖺tat𝒖𝒔:** {status}\n"
+            f"🔞 🛡️ **𝖱𝖺𝒕𝒊𝒏𝒈:** {rating}\n"
             f"🎭 🔮 **𝖦𝖾𝗇𝒓𝒆𝒔:** *{genres}*\n\n"
             f"📝 📜 **𝖲𝗒𝗇𝗈𝗉𝒔𝒊𝒔:**\n_{synopsis}_"
         )
@@ -90,5 +110,5 @@ async def anime_search(client: Client, message: Message):
         )
 
 if __name__ == "__main__":
-    print("🚀 Telegram Bot Engine Started Successfully on Render!")
+    print("🚀 Telegram Bot Engine Started Successfully with Port Bypass!")
     bot.run()
